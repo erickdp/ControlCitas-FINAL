@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>Gestion de Consultorios</title>
+        <h:outputStylesheet name="primeflex.min.css" library="css" />
+        <f:event type="preRenderView" listener="#{plantillaController.verificarSesion2()}" />
+        <link rel="shortcut icon" href="../../resources/ico/logo_16.png" />
+        <link rel="stylesheet" href="../../resources/css/estilo.css" />
+    </h:head>
+
+    <h:body>
+
+        <h:form id="menuBar">
+            <p:menubar>
+                <p:menuitem icon="pi pi-fw pi-home" value="Inicio" action="/pages/empleadoPerfil?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-users" value="Pacientes" action="/pages/subpages/pacienteForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-calendar" value="Citas" action="/pages/subpages/citasForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-user-edit" value="Empleados" action="/pages/subpages/empleadoForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-wallet" value="Consultorios" disabled="true"/>
+                <p:menuitem icon="pi pi-fw pi-clock" value="Horario Atencion" action="/pages/subpages/horariosForm?faces-redirect=true"/>
+                <f:facet name="options">
+                    <p:commandButton icon="pi pi-fw pi-sign-out" styleClass="ui-button-danger ui-button-raised ui-button-flat" 
+                                     value="Cerrar Sesion" actionListener="#{usuarioBean.cerrarSesion}" action="/index?faces-redirect=true"/>
+                    <p:avatar label="#{empleadoBean.usuarioSesion.empleado.nombre.charAt(0)}" 
+                              size="large" style="margin-left: 1.7rem; background-color:#009999; color: #ffffff"/>
+                </f:facet>
+            </p:menubar>
+            <p:growl id="msgs" showDetail="true" rendered="true" showSummary="true"/>
+        </h:form>
+
+
+        <div class="p-grid p-jc-evenly p-mx-2 p-mt-4">
+            <p:card>
+
+                <h:form class="p-mb-4 p-grid p-jc-between">
+                    <div class="p-ml-2" >
+                        <p:commandButton value="Agregar Consultorio" icon="pi pi-plus" styleClass="ui-button-raised ui-button-help" 
+                                         oncomplete="PF('dlgReporteAgregarConsultorio').show();" update=":formAgregar:iDlgReporteAgregarConsultorio" style="margin-right: 2.8rem"/>
+                        <!--Revisar como se pueden cargar los datos no poniendolos en el postcontruct-->
+                        <!--Para cargarlos se debe usar un p:ajax-->
+                        <p:commandButton value="Agregar Medico a cosultorio" icon="pi pi-plus" styleClass="ui-button-raised ui-button-help" 
+                                         oncomplete="PF('dlgReporteAgregarMedico').show();" update="iDlgReporteAgregarMedico" actionListener="#{consultorioAdminBean.cargarCamposAgregar()}"
+                                         >
+                        </p:commandButton>
+                    </div>
+
+                    <div class="p-mr-2">
+                        <p:commandButton value="Reporte Consultorios"
+                                         styleClass="ui-button-raised ui-button-primary"
+                                         icon="pi pi-download">
+                            <p:dataExporter type="pdf" target=":formConsultorio:dtConsultorio" fileName="Consultorios SGC" 
+                                            preProcessor="#{exportDocument.preProcessPDF}" options="#{exportDocument.pdfOptions}"/>
+                        </p:commandButton>
+                    </div>
+                </h:form>
+
+                <h:form id="formConsultorio">
+                    <p:dataTable id="dtConsultorio" value="#{consultorioAdminBean.consultorioList}" var="consultorio"
+                                 rows="4" paginator="true" paginatorPosition="top" editable="true" rowKey="#{consultorio.idConsultorio}" 
+                                 selectionMode="single" allowUnsorting="true" >
+
+                        <f:facet name="header">
+                            Consultorios Disponibles
+                        </f:facet>
+
+                        <p:column headerText="CODIGO" filterBy="#{consultorio.codConsultorio}" >
+                            <h:outputText value="#{consultorio.codConsultorio}"/>
+                        </p:column>
+                        <p:column headerText="Especialidad" filterBy="#{consultorio.especialidad}}" 
+                                  width="200" sortBy="#{consultorio.especialidad}">
+                            <h:outputText value="#{consultorio.especialidad}"/>
+                        </p:column>
+                        <p:column headerText="Hora de Apertura" sortBy="#{consultorio.idHorario.horaInicio}">
+                            <h:outputText value="#{gestionBean.convertirHora(consultorio.idHorario.horaInicio)}" />
+                        </p:column>
+                        <p:column headerText="Hora de Cierre" sortBy="#{consultorio.idHorario.horaFinal}">
+                            <h:outputText value="#{gestionBean.convertirHora(consultorio.idHorario.horaFinal)}" />
+                        </p:column>
+                        <p:column headerText="Dias Laborales" width="370">
+                            <h:outputText value="#{consultorio.idHorario.diasLaborales}" />
+                        </p:column>
+                        <p:column headerText="Especialistas" sortBy="#{consultorioAdminBean.countEspecialistas(consultorio.medicoList)}">
+                            <h:outputText value="#{consultorioAdminBean.countEspecialistas(consultorio.medicoList)}" />
+                        </p:column>
+                        <p:column headerText="Estado" filterBy="#{consultorio.activo}">
+                            <h:outputText value="#{consultorio.activo}"/>
+                        </p:column>
+
+                        <p:column exportable="false" headerText="Editar" width="60" >
+                            <p:commandButton class="ui-button-success rounded-button ui-button-raised" icon="pi pi-pencil"
+                                             oncomplete="PF('dlgReporteAgregarConsultorio').show()" update=":formAgregar:iDlgReporteAgregarConsultorio" >
+                                <f:setPropertyActionListener value="#{consultorio}" target="#{consultorioAdminBean.consultorioSelect}" />
+                            </p:commandButton>
+                        </p:column>
+
+                        <p:column exportable="false" headerText="(IN)Habilitar" width="80">
+                            <p:commandButton class="ui-button-success rounded-button ui-button-raised" icon="pi pi-plus"
+                                             oncomplete="PF('dlgReporteAgregar').show()" rendered="#{gestionBean.validacionConsultorio(consultorio.activo, consultorio.idHorario.estado)}">
+                                <f:setPropertyActionListener value="#{consultorio}" target="#{consultorioAdminBean.consultorioSelect}" />
+                            </p:commandButton>
+                            <p:commandButton class="ui-button-danger rounded-button ui-button-raised" icon="pi pi-trash"
+                                             oncomplete="PF('dlgReporteEliminar').show()" rendered="#{gestionBean.validacionConsultorio2(consultorio.activo, consultorio.idHorario.estado)}">
+                                <f:setPropertyActionListener value="#{consultorio}" target="#{consultorioAdminBean.consultorioSelect}" />
+                            </p:commandButton>
+                        </p:column>
+
+                        <!--Set property solo se usa sin actionListener si se combinan no cargan-->
+                        <p:column exportable="false" headerText="Reporte" width="60" >
+                            <p:commandButton class="ui-button-primary rounded-button ui-button-raised" icon="pi pi-download"
+                                             oncomplete="PF('dlgReporte').show()" update="iDlgReporte :formIndividual:dtReporteIndividual :menuBar:msgs"
+                                             actionListener="#{consultorioAdminBean.cargarReporte(consultorio.especialidad)}">
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+
+                </h:form>
+            </p:card>
+        </div>
+
+        <p:dialog widgetVar="dlgReporte" modal="true" resizable="false" showEffect="fade" 
+                  id="iDlgReporte" closable="false" >
+            <h:form id="formIndividual" >
+                <div class="p-my-2 p-grid p-jc-start">
+                    <p:commandButton value="Reporte Médicos"
+                                     styleClass="ui-button-raised ui-button-primary"
+                                     icon="pi pi-check" oncomplete="PF('dlgReporte').hide();" >
+                        <p:dataExporter type="pdf" target="dtReporteIndividual" fileName="Medico Consultorio SGC" 
+                                        preProcessor="#{exportDocument.preProcessPDF}" options="#{exportDocument.pdfOptions}"/>
+                    </p:commandButton>
+
+                    <p:commandButton value="Cancelar"
+                                     styleClass="ui-button-raised ui-button-warning" style="margin-left: 1rem"
+                                     icon="pi pi-times" onclick="PF('dlgReporte').hide();">
+                    </p:commandButton>
+                </div>
+
+                <p:dataTable id="dtReporteIndividual" value="#{consultorioAdminBean.empleadoList}" var="empleado"
+                             paginator="true" paginatorPosition="top" rows="5" >
+                    
+                    <p:column headerText="CI" filterBy="#{empleado.ci}" >
+                        <h:outputText value="#{empleado.ci}"/>
+                    </p:column>
+                    <p:column headerText="Nombre" filterBy="#{empleado.apellido}" >
+                        <h:outputText value="Dr. #{empleado.nombre} #{empleado.apellido}"/>
+                    </p:column>
+                    <p:column headerText="Usuario" filterBy="#{empleado.usuario.nombreUsuario}" >
+                        <h:outputText value="#{empleado.usuario.nombreUsuario}"/>
+                    </p:column>
+                    <p:column headerText="Mail" filterBy="#{empleado.usuario.mail}" >
+                        <h:outputText value="#{empleado.usuario.mail}"/>
+                    </p:column>
+                    <p:column headerText="Estado" sortBy="#{empleado.activo}" filterBy="#{empleado.activo}" >
+                        <h:outputText value="#{empleado.activo}"/>
+                    </p:column>
+                </p:dataTable>
+
+            </h:form>
+        </p:dialog>
+
+        <!--Esta incompleto aun esta parte de agregar-->
+        <p:dialog widgetVar="dlgReporteAgregarMedico" modal="true" resizable="false" showEffect="fade" 
+                  id="iDlgReporteAgregarMedico">
+            <h:form>
+
+                <h:panelGrid columns="3" cellpadding="5" id="panelGrid">
+                    <p:outputLabel for="medico" value="Medico: " />
+                    <p:selectOneMenu id="medico" value="#{consultorioAdminBean.medicoId}" required="true">
+                        <f:selectItem itemLabel="Seleccionar Medico" noSelectionOption="true" />
+                        <f:selectItems value="#{consultorioAdminBean.medicosMapList}"/>
+                    </p:selectOneMenu>
+                    <p:message for="medico"  />
+                    <p:outputLabel for="especialidad" value="Especialidad: " />
+                    <p:selectOneMenu id="especialidad" value="#{consultorioAdminBean.especialidad}" required="true">
+                        <f:selectItem itemLabel="Seleccionar Especialidad" noSelectionOption="true" />
+                        <f:selectItems value="#{consultorioAdminBean.consultorioMapList}"/>
+                    </p:selectOneMenu>
+                    <p:message for="especialidad"  />
+
+                    <p:commandButton update="panelGrid :formConsultorio @this :menuBar:msgs" icon="pi pi-plus"
+                                     styleClass="ui-button-succes" 
+                                     value="Guardar" oncomplete="PF('dlgReporteAgregarMedico').hide();"
+                                     actionListener="#{consultorioAdminBean.agregarMedicoAConsultorio()}"/>
+                </h:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <h:form id="formAgregar">
+            <p:dialog widgetVar="dlgReporteAgregarConsultorio" modal="true" resizable="false" showEffect="puff"
+                      header="Gestion Consultorio" id="iDlgReporteAgregarConsultorio" closable="false">
+                <p:outputPanel id="outAC" rendered="#{not empty consultorioAdminBean.consultorioSelect}">
+
+                    <div class="p-field">
+                        <h4>Especialidad</h4>
+                        <p:inputText id="especialidad" required="true" value="#{consultorioAdminBean.consultorioSelect.especialidad}" />
+                        <p:message for="especialidad" />
+                    </div>
+
+                    <div class="p-field">
+                        <h4>Hora Apertura</h4>
+                        <p:selectOneMenu id="horaA" value="#{consultorioAdminBean.horaApertura}" required="#{empty consultorioAdminBean.consultorioSelect}">
+                            <f:selectItem itemLabel="Seleccionar Horario" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{consultorioAdminBean.horarios}"/>
+                        </p:selectOneMenu>
+                        <p:message for="horaA"  />
+                    </div>
+
+                </p:outputPanel>
+                <f:facet name="footer">
+                    <p:commandButton update="outAC :menuBar:msgs"
+                                     styleClass="ui-button-succes" 
+                                     value="Guardar"
+                                     actionListener="#{consultorioAdminBean.agregarConsultorio()}"/>
+                    <p:commandButton update="formAgregar"
+                                     styleClass="ui-button-warning" 
+                                     value="Cancelar"
+                                     actionListener="#{consultorioAdminBean.cancelarOpcion()}"
+                                     onclick="PF('dlgReporteAgregarConsultorio').hide();"
+                                     />
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <p:confirmDialog widgetVar="dlgReporteEliminar" showEffect="fade" width="300"
+                         message="Seguro desea eliminar el consultorio?" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{consultorioAdminBean.inhabilitarConsultorio()}"
+                             process="@this" oncomplete="PF('dlgReporteEliminar').hide()" update=":formConsultorio"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgReporteEliminar').hide()"/>
+        </p:confirmDialog>
+
+        <p:confirmDialog widgetVar="dlgReporteAgregar" showEffect="fade" width="300"
+                         message="Habilitar este consultorio?" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{consultorioAdminBean.habilitarConsultorio()}"
+                             process="@this" oncomplete="PF('dlgReporteAgregar').hide()" update=":formConsultorio"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgReporteAgregar').hide()"/>
+        </p:confirmDialog>
+    </h:body>
+</html>

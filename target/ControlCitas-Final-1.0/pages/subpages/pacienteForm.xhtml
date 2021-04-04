@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>Gestion de Pacientes</title>
+        <h:outputStylesheet name="primeflex.min.css" library="css" />
+        <f:event type="preRenderView" listener="#{plantillaController.verificarSesion2()}" />
+        <link rel="shortcut icon" href="../../resources/ico/logo_16.png" />
+        <link rel="stylesheet" href="../../resources/css/estilo.css" />
+    </h:head>
+
+    <h:body>
+
+        <h:form id="menuBar">
+            <p:outputPanel id="out" >
+                <p:menubar>
+                    <p:menuitem icon="pi pi-fw pi-home" value="Inicio" action="/pages/empleadoPerfil?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-users" value="Pacientes" disabled="true"/>
+                    <p:menuitem icon="pi pi-fw pi-calendar" value="Citas" action="/pages/subpages/citasForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-user-edit" value="Empleados" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/empleadoForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-wallet" value="Consultorios" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/consultorioForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-clock" value="Horario Atencion" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/horariosForm?faces-redirect=true"/>
+                    <f:facet name="options">
+                        <p:commandButton icon="pi pi-fw pi-sign-out" styleClass="ui-button-danger ui-button-raised ui-button-flat"  
+                                         value="Cerrar Sesion" actionListener="#{usuarioBean.cerrarSesion}" action="/index?faces-redirect=true"/>
+                        <p:avatar label="#{empleadoBean.usuarioSesion.empleado.nombre.charAt(0)}" 
+                                  size="large" style="margin-left: 1.7rem; background-color:#009999; color: #ffffff"/>
+                    </f:facet>
+                </p:menubar>
+            </p:outputPanel>
+            <p:growl id="msgs" showDetail="true" rendered="true" showSummary="true"/>
+        </h:form>
+
+        <div class="p-grid p-jc-evenly p-mx-2 p-my-4">
+            <p:card>
+                <h:form class="p-mb-4 p-grid p-jc-between">
+                    <div class="p-ml-2">
+                        <p:commandButton value="Agregar" icon="pi pi-user-plus" styleClass="ui-button-help ui-button-raised" 
+                                         oncomplete="PF('dlgAgregar').show();" />
+                    </div>
+                    <div class="p-mr-2">
+                        <p:commandButton value="Reporte Pacientes"
+                                         styleClass="ui-button-raised ui-button-primary"
+                                         icon="pi pi-download">
+                            <p:dataExporter type="pdf" target=":formPaciente:dtPaciente" fileName="Pacientes SGC"
+                                            preProcessor="#{exportDocument.preProcessPDF}" options="#{exportDocument.pdfOptions}"/>
+                        </p:commandButton>
+                    </div>
+                </h:form>
+                <h:form id="formPaciente">
+                    <p:dataTable id="dtPaciente" value="#{paAdminBean.pacienteList}" var="paciente"
+                                 rows="4" paginator="true" paginatorPosition="top" editable="true" rowKey="#{paciente.idUsuario}"
+                                 selectionMode="single" allowUnsorting="true" >
+
+                        <p:ajax event="rowEdit" listener="#{paAdminBean.onRowEdit}" update=":menuBar:msgs"/>
+
+                        <f:facet name="header">
+                            Pacientes
+                        </f:facet>
+
+                        <p:column headerText="CI" filterBy="#{paciente.PCi}">
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{paciente.PCi}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{paciente.PCi}" />
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Nombre" sortBy="#{paciente.PNombre}" filterBy="#{paciente.PNombre}">
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{paciente.PNombre}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{paciente.PNombre}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Apellido" sortBy="#{paciente.PApellido}" filterBy="#{paciente.PApellido}">
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{paciente.PApellido}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{paciente.PApellido}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Usuario" filterBy="#{paciente.usuario.nombreUsuario}">
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{paciente.usuario.nombreUsuario}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{paciente.usuario.nombreUsuario}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Contrasena" exportable="false">
+                            <p:cellEditor disabled="true" >
+                                <f:facet name="output" >
+                                    <h:outputText value="#{paciente.usuario.contrasena}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <h:inputText value="#{paciente.usuario.contrasena}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Email" filterBy="#{paciente.usuario.mail}">
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{paciente.usuario.mail}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{paciente.usuario.mail}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Estado" filterBy="#{paciente.activo}">
+                            <p:cellEditor disabled="true">
+                                <f:facet name="output" >
+                                    <h:outputText value="#{paciente.activo}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{paciente.activo}" />
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+
+                        <p:column style="width:6rem" exportable="false">
+                            <p:rowEditor editTitle="Editar" cancelTitle="Cancelar Edicion" saveTitle="Guardar Cambios"/>
+                        </p:column>
+
+                        <p:column style="width:6rem" exportable="false" headerText="(In)Habilitar Paciente" >
+                            <p:commandButton class="ui-button-danger rounded-button ui-button-raised" icon="pi pi-user-minus"
+                                             oncomplete="PF('dlgEliminar').show()" rendered="#{gestionBean.mostrarOpcion(paciente.activo)}" >
+                                <!--Esta propiedad se usa para cargar un valor en una variable cuando la clase tiene viewScope-->
+                                <f:setPropertyActionListener value="#{paciente}" target="#{paAdminBean.pacienteSelect}"/>
+                            </p:commandButton>
+                            <p:commandButton class="ui-button-success rounded-button ui-button-raised" icon="pi pi-user-plus"
+                                             oncomplete="PF('dlgConfirmar').show();" rendered="#{gestionBean.mostrarOpcion2(paciente.activo)}"
+                                             >
+                                <f:setPropertyActionListener value="#{paciente}" target="#{paAdminBean.pacienteSelect}" />
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                </h:form>
+            </p:card>
+        </div>
+
+        <p:dialog widgetVar="dlgAgregar" modal="true" resizable="false" showEffect="puff">
+            <h:form>
+
+                <h:panelGrid columns="3" cellpadding="5" id="panelGrid">
+
+                    <p:outputLabel for="ci" value="CI: " />
+                    <p:inputMask mask="9999999999" id="ci" required="true" value="#{paAdminBean.pacienteSelect.PCi}" />
+                    <p:message for="ci" />
+
+                    <p:outputLabel for="nombre" value="Nombre: " />
+                    <p:inputText id="nombre" required="true" value="#{paAdminBean.pacienteSelect.PNombre}" />
+                    <p:message for="nombre" />
+
+                    <p:outputLabel for="apellido" value="Apelldio: " />
+                    <p:inputText id="apellido" required="true" value="#{paAdminBean.pacienteSelect.PApellido}" />
+                    <p:message for="apellido"  />
+
+                    <p:outputLabel for="fechaN" value="Fecha Nacimiento: " />
+                    <p:inputMask mask="9999-99-99" id="fechaN" required="true" value="#{paAdminBean.fechaNacimiento}"/>
+                    <p:message for="fechaN" />
+
+                    <p:outputLabel for="genero" value="Genero: " />
+                    <p:inputText id="genero" required="true" value="#{paAdminBean.pacienteSelect.PGenero}" />
+                    <p:message for="genero"  />
+
+                    <p:outputLabel for="usuario" value="Nombre Usuario: " />
+                    <p:inputText id="usuario" required="true" value="#{paAdminBean.usuarioSelect.nombreUsuario}" />
+                    <p:message for="usuario"  />
+
+                    <p:outputLabel for="contrsena" value="Contrasena: " />
+                    <p:password id="contrsena" required="true" value="#{paAdminBean.usuarioSelect.contrasena}" />
+                    <p:message for="contrsena"  />
+
+                    <p:outputLabel for="mail" value="Mail: " />
+                    <p:inputText id="mail" required="true" value="#{paAdminBean.usuarioSelect.mail}" />
+                    <p:message for="mail"  />
+
+                    <p:outputLabel for="telefono" value="Teléfono: " />
+                    <p:inputMask mask="(+999) 99 999 9999" id="telefono" required="true" value="#{paAdminBean.usuarioSelect.telefono}" />
+                    <p:message for="telefono"  />
+
+                    <p:commandButton update="panelGrid :formPaciente" icon="pi pi-plus"
+                                     styleClass="ui-button-succes" actionListener="#{paAdminBean.agregarPaciente}" 
+                                     value="Guardar"/>
+                </h:panelGrid>
+            </h:form>
+        </p:dialog>
+
+
+        <p:confirmDialog widgetVar="dlgEliminar" showEffect="puff" width="300" closable="false"
+                         message="Pasará a estado Inactivo pero usted aún lo podrá ver, proceder?" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{paAdminBean.eliminarPaciente()}"
+                             oncomplete="PF('dlgEliminar').hide()" update=":formPaciente"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgEliminar').hide()"/>
+        </p:confirmDialog>
+
+        <p:confirmDialog widgetVar="dlgConfirmar" showEffect="puff" width="300" closable="false"
+                         message="Habilitar al Paciente?" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{paAdminBean.habilitarPaciente()}"
+                             oncomplete="PF('dlgConfirmar').hide()" update=":formPaciente"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgAgregar').hide()"/>
+        </p:confirmDialog>
+
+    </h:body>
+</html>

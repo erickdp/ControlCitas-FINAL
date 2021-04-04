@@ -1,0 +1,17 @@
+.INACTIVO {
+    background-color: #006666 !important;
+    background-image: none !important;
+    color: #ffffff !important;
+}
+
+.NO_ATENDIDO {
+    background-color: #990033 !important;
+    background-image: none !important;
+    color: #ffffff !important;
+}
+
+.ATENDIDO {
+    background-color: #006600 !important;
+    background-image: none !important;
+    color: #ffffff !important;
+}

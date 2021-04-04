@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>Estudio Actuarial</title>
+        <h:outputStylesheet name="primeflex.min.css" library="css" />
+        <f:event type="preRenderView" listener="#{plantillaController.verificarSesion2()}" />
+        <link rel="shortcut icon" href="../../resources/ico/logo_16.png " />
+        <link rel="stylesheet" href="../../resources/css/estilo.css" />
+    </h:head>
+
+    <h:body>
+
+        <h:form id="menuBar">
+            <p:outputPanel id="out">
+                <p:menubar>
+                    <p:menuitem icon="pi pi-fw pi-home" value="Inicio" action="/pages/empleadoPerfil?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-calendar" value="Atencion Citas" disabled="true" />
+                    <f:facet name="options">
+                        <p:commandButton icon="pi pi-fw pi-sign-out" styleClass="ui-button-danger ui-button-raised ui-button-flat"  
+                                         value="Cerrar Sesion" actionListener="#{usuarioBean.cerrarSesion}" action="/index?faces-redirect=true"/>
+                        <p:avatar label="#{empleadoBean.usuarioSesion.empleado.nombre.charAt(0)}" 
+                                  size="large" style="margin-left: 1.7rem; background-color:#009999; color: #ffffff"/>
+                    </f:facet>
+                </p:menubar>
+            </p:outputPanel>
+            <p:growl id="msgs" showDetail="true" rendered="true" showSummary="true"/>
+        </h:form>
+
+        <div class="p-grid p-jc-center">
+
+            <p:card class="p-m-4 p-col-10">
+                <h:form id="calendarioForm">
+                    <p:schedule id="calendario" value="#{medicoBean.eventModel}" widgetVar="myschedule" rightHeaderTemplate="dayGridMonth" 
+                                draggable="false">
+                        <p:ajax event="eventSelect" listener="#{medicoBean.onEventSelect}"
+                                oncomplete="PF('dlgCita').show();" update="iDlgCita"/>
+                    </p:schedule>
+
+                    <p:dialog widgetVar="dlgCita" header="Ficha Cita" showEffect="fade" modal="true" hideEffect="fade" id="iDlgCita">
+                        <div class="ui-fluid p-field">
+                            <p:outputLabel for="title" value="Consulta: " styleClass="p-text-bold" class="ui-fluid"/>
+                            <p:inputText id="title" value="#{medicoBean.event.title}" disabled="true" />
+                        </div>
+
+                        <div class="ui-fluid p-field">
+                            <p:outputLabel for="from" value="Fecha Cita: " />
+                            <p:datePicker id="from" value="#{medicoBean.event.startDate}" pattern="dd/MM/yyyy HH:mm"
+                                          showTime="true" appendTo="@(body)" disabled="true" />
+                        </div>
+
+                        <div>
+                            <!--En este caso debo actualizar el dialog para que aparezcan los datos cargados-->
+                            <!--Al momento de obtener el evento cargo el codigo en una variable pues luego no se puede acceder, lo cargue en un
+                            metodo set de event-->
+                            <p:commandButton id="addButton" value="Empezar Consulta" update="iDlgHistorial"
+                                             actionListener="#{medicoBean.cargarHistorial()}" class="p-mr-2">
+                            </p:commandButton>
+                            <p:commandButton value="Cancelar Cita" styleClass="p-text-bold ui-button-outlined ui-button-warning"  
+                                             actionListener="#{medicoBean.cancelarCita()}" oncomplete="PF('dlgCita').hide();"/>
+                        </div>
+                    </p:dialog>
+                </h:form>
+            </p:card>
+        </div>
+
+
+        <p:dialog widgetVar="dlgHistorial" modal="true" showEffect="fade" id="iDlgHistorial" responsive="true">
+            <h:form id="historialForm">
+
+                <h:panelGrid id="panelGrid" columns="3" cellpadding="5">
+
+                    <p:outputLabel value="Codigo Historial - #{medicoBean.historialMSelec.codigoHistorial}" styleClass="p-text-bold"/>
+                    <p:outputLabel value="Cedula Paciente - #{medicoBean.historialMSelec.paciente.PCi}" styleClass="p-text-bold"/>
+                    <p:outputLabel value="Paciente: #{medicoBean.historialMSelec.paciente.PNombre} #{medicoBean.historialMSelec.paciente.PApellido}" styleClass="p-text-bold"/>
+
+                    <p:outputLabel value="Fecha Apertura: " styleClass="p-text-bold"/>
+                    <p:outputLabel value="#{medicoBean.historialMSelec.fechaApertura}" styleClass="p-text-bold">
+                        <f:convertDateTime parent="yyyy/MM/dd" />
+                    </p:outputLabel>
+                    <!--Validar que solo ingrese el tipo de sangre si es la primera consulta los comentarios aqui se consideran una columa mas-->
+
+                    <p:outputLabel for="tipoS" value="Tipo Sangre: " styleClass="p-text-bold"/>
+                    <p:inputText id="tipoS" value="#{medicoBean.historialMSelec.tipoSangre}" disabled="#{gestionBean.cambiarSangre(medicoBean.historialMSelec.tipoSangre)}" />
+                    <p:message for="tipoS" />
+
+                    <p:outputLabel for="peso" value="Peso: " />
+                    <p:inputText id="peso" value="#{medicoBean.detalleHistorialUpdate.peso}" />
+                    <!--h-->
+
+                    <p:outputLabel for="presion" value="Presion: " />
+                    <p:inputText id="presion" value="#{medicoBean.detalleHistorialUpdate.presion}" />
+                    <!--h-->
+
+                    <p:outputLabel for="diagnostico" value="Diagnostico:  " />
+                    <p:inputTextarea id="diagnostico" value="#{medicoBean.detalleHistorialUpdate.diagnostico}" 
+                                     required="true" rows="5" cols="40"/>
+                    <p:message for="diagnostico" />
+
+                    <p:commandButton value="Terminar" actionListener="#{medicoBean.actualizarHistorial()}" styleClass="ui-button-succes"
+                                     update="historialForm:panelGrid" >
+                        <f:setPropertyActionListener value="#{medicoBean.historialMSelec.idUsuario}" target="#{medicoBean.idUsuario}" />
+                    </p:commandButton>
+
+                </h:panelGrid>
+                <p:dataTable id="dtHistorial" 
+                             value="#{medicoBean.historialMSelec.detalleHistorialList}"
+                             var="detalleH"
+                             rows="2" paginator="true" paginatorPosition="top"
+                             rowKey="#{detalleH.idDetalleHistorial}" >
+
+                    <p:column headerText="Fecha Consulta: ">
+                        <h:outputText value="#{detalleH.fechaModificacion}" >
+                            <f:convertDateTime pattern="YYYY/MM/dd" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Peso: ">
+                        <h:outputText value="#{detalleH.peso}" />
+                    </p:column>
+                    <p:column headerText="Presion ">
+                        <h:outputText value="#{detalleH.presion}" />
+                    </p:column>
+                    <p:column colspan="2" headerText="Diagnostico">
+                        <h:outputText value="#{detalleH.diagnostico}" />
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </p:dialog>
+
+    </h:body>
+</html>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>Gestion de Empleados</title>
+        <h:outputStylesheet name="primeflex.min.css" library="css" />
+        <f:event type="preRenderView" listener="#{plantillaController.verificarSesion2()}" />
+        <link rel="shortcut icon" href="../../resources/ico/logo_16.png" />
+        <link rel="stylesheet" href="../../resources/css/estilo.css" />
+    </h:head>
+
+    <h:body>
+        <h:form id="menuBar">
+            <p:menubar>
+                <p:menuitem icon="pi pi-fw pi-home" value="Inicio" action="/pages/empleadoPerfil?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-users" value="Pacientes" action="/pages/subpages/pacienteForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-calendar" value="Citas" action="/pages/subpages/citasForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-user-edit" value="Empleados" disabled="true"/>
+                <p:menuitem icon="pi pi-fw pi-wallet" value="Consultorios" action="/pages/subpages/consultorioForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-clock" value="Horario Atencion" action="/pages/subpages/horariosForm?faces-redirect=true"/>
+                <f:facet name="options">
+                    <p:commandButton icon="pi pi-fw pi-sign-out" styleClass="ui-button-danger ui-button-raised ui-button-flat" 
+                                     value="Cerrar Sesion" actionListener="#{usuarioBean.cerrarSesion}" action="/index?faces-redirect=true"/>
+                    <p:avatar label="#{empleadoBean.usuarioSesion.empleado.nombre.charAt(0)}" 
+                              size="large" style="margin-left: 1.7rem; background-color:#009999; color: #ffffff"/>
+                </f:facet>
+            </p:menubar>
+            <p:growl id="msgs" showDetail="true" rendered="true" showSummary="true"/>
+        </h:form>
+
+        <div class="p-grid p-jc-evenly p-mx-2 p-my-4">
+            <p:card>
+                <h:form class="p-mb-4 p-grid p-jc-between">
+                    <div class="p-ml-2">
+                        <p:commandButton value="Agregar" icon="pi pi-user-plus" styleClass="ui-button-raised ui-button-help"
+                                         oncomplete="PF('dlgAgregarEmpl').show();" />
+                    </div>
+                    <div class="p-mr-2">
+                        <p:commandButton value="Reporte Empleados"
+                                         styleClass="ui-button-raised ui-button-primary"
+                                         icon="pi pi-download">
+                            <p:dataExporter type="pdf" target=":formEmpleados:dtEmpleados" fileName="Empleados SGC"
+                                            preProcessor="#{exportDocument.preProcessPDF}" options="#{exportDocument.pdfOptions}"/>
+                        </p:commandButton>
+                    </div>
+                </h:form>
+                <h:form id="formEmpleados">
+                    <p:dataTable id="dtEmpleados" value="#{eAdminBean.empleadoList}" var="empleado"
+                                 rows="4" paginator="true" paginatorPosition="top" editable="true" rowKey="#{empleado.idUsuario}"
+                                 selectionMode="single">
+
+                        <p:ajax event="rowEdit" listener="#{eAdminBean.onRowEdit}" update=":menuBar:msgs"/>
+
+                        <f:facet name="header">
+                            Empleados
+                        </f:facet>
+
+                        <p:column headerText="CI">
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{empleado.ci}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{empleado.ci}" />
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Nombre" filterBy="#{empleado.nombre}" >
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{empleado.nombre}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{empleado.nombre}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Apellido" filterBy="#{empleado.apellido}" >
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{empleado.apellido}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{empleado.apellido}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Cargo" filterBy="#{empleado.cargo}" >
+                            <p:cellEditor disabled="true">
+                                <f:facet name="output" >
+                                    <h:outputText value="#{empleado.cargo}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{empleado.cargo}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Usuario" filterBy="#{empleado.usuario.nombreUsuario}" >
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{empleado.usuario.nombreUsuario}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{empleado.usuario.nombreUsuario}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Contrasena" exportable="false">
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{empleado.usuario.contrasena}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <h:inputText value="#{empleado.usuario.contrasena}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Email" filterBy="#{empleado.usuario.mail}" >
+                            <p:cellEditor>
+                                <f:facet name="output" >
+                                    <h:outputText value="#{empleado.usuario.mail}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{empleado.usuario.mail}"/>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="Estado" sortBy="#{empleado.activo}">
+                            <p:cellEditor disabled="true">
+                                <f:facet name="output" >
+                                    <h:outputText value="#{empleado.activo}"/>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{empleado.activo}" />
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column exportable="false">
+                            <p:rowEditor editTitle="Editar" cancelTitle="Cancelar Edicion" saveTitle="Guardar Cambios"/>
+                        </p:column>
+                        <p:column exportable="false" headerText="(IN)Habilitar">
+                            <p:commandButton class="ui-button-success rounded-button ui-button-raised" icon="pi pi-user-plus"
+                                             oncomplete="PF('dlgAgregar').show()" rendered="#{gestionBean.mostrarOpcion2(empleado.activo)}">
+                                <f:setPropertyActionListener value="#{empleado}" target="#{eAdminBean.empleadoSelect}" />
+                            </p:commandButton>
+                            <p:commandButton class="ui-button-danger rounded-button ui-button-raised" icon="pi pi-user-minus"
+                                             oncomplete="PF('dlgEliminar').show()" rendered="#{gestionBean.mostrarOpcion(empleado.activo)}">
+                                <f:setPropertyActionListener value="#{empleado}" target="#{eAdminBean.empleadoSelect}" />
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                </h:form>
+            </p:card>
+        </div>
+
+
+        <!--El message lo que hace es notificar alado del input que no ingreso nada, el que despliega mensajes-->
+        <!--flotantes es el msgs-->
+        <p:dialog header="Agregar Empleado" widgetVar="dlgAgregarEmpl"
+                  id="iDlgAgregarEmpl" showEffect="puff" modal="true" responsive="true" >
+            <h:form>
+                <h:panelGrid columns="3" cellpadding="5" id="panelGrid">
+                    <p:outputLabel for="ci" value="Cédula Identidad: "/>
+                    <p:inputMask mask="9999999999"  id="ci" value="#{eAdminBean.ci}" required="true" >
+                        <p:ajax event="valueChange" update=":menuBar:msgs" listener="#{eAdminBean.validarCedula()}" />
+                    </p:inputMask>
+                    <p:message for="ci"/>
+
+                    <p:outputLabel for="nombre" value="Nombre: "/>
+                    <p:inputText id="nombre" value="#{eAdminBean.empleadoSelect.nombre}" required="true"/>
+                    <p:message for="nombre"/>
+
+                    <p:outputLabel for="apellido" value="Apellido: "/>
+                    <p:inputText id="apellido" value="#{eAdminBean.empleadoSelect.apellido}" required="true"/>
+                    <p:message for="apellido"/>
+
+                    <p:outputLabel for="cargo" value="Cargo: "/>
+                    <p:selectOneRadio id="cargo" value="#{eAdminBean.empleadoSelect.cargo}" required="true">
+                        <f:selectItem itemLabel="Administrador" itemValue="ADMINISTRADOR"/>
+                        <f:selectItem itemLabel="Medico" itemValue="MEDICO"/>
+                        <f:selectItem itemLabel="Secretario" itemValue="SECRETARIO"/>
+                    </p:selectOneRadio>
+                    <p:message for="cargo"/>
+
+                    <p:outputLabel for="nombreU" value="Nombre Usuario: "/>
+                    <p:inputText id="nombreU" value="#{eAdminBean.usuarioSelect.nombreUsuario}" required="true"/>
+                    <p:message for="nombreU"/>
+
+                    <p:outputLabel for="contrasena" value="Contrseña: "/>
+                    <p:password id="contrasena" value="#{eAdminBean.usuarioSelect.contrasena}" required="true"/>
+                    <p:message for="contrasena"/>
+
+                    <p:outputLabel for="mail" value="Email: "/>
+                    <p:inputText id="mail" value="#{eAdminBean.usuarioSelect.mail}" required="true"/>
+                    <p:message for="mail"/>
+
+                    <p:outputLabel for="telefono" value="Telefono "/>
+                    <p:inputMask mask="(+999) 99 999 9999" id="telefono" value="#{eAdminBean.usuarioSelect.telefono}" required="true"/>
+                    <p:message for="telefono"/>
+
+                    <!--Para validar que los campos reqeridos entren se debe de actualizar el panel-->
+                    <p:commandButton update=":formEmpleados panelGrid" actionListener="#{eAdminBean.agregarEmpleado}"
+                                     styleClass="ui-button-outlined ui-button-success"
+                                     icon="pi pi-check" value="Guardar"/>
+                </h:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <p:confirmDialog widgetVar="dlgEliminar" showEffect="puff" width="300"
+                         message="Seguro desea inhabilitar al empleado?" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{eAdminBean.inhabilitarEmpleado()}"
+                             process="@this" oncomplete="PF('dlgEliminar').hide()" update=":formEmpleados"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgEliminar').hide()"/>
+        </p:confirmDialog>
+
+        <p:confirmDialog widgetVar="dlgAgregar" showEffect="puff" width="300"
+                         message="Habilitar al Empleado?" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{eAdminBean.habilitarEmpleado()}"
+                             process="@this" oncomplete="PF('dlgAgregar').hide()" update=":formEmpleados"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgAgregar').hide()"/>
+        </p:confirmDialog>
+
+    </h:body>
+</html>

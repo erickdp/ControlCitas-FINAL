@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>SGC Medic Center</title>
+        <h:outputStylesheet name="primeflex.min.css" library="css" />
+        <link rel="shortcut icon" href="resources/ico/logo.ico" />
+        <link rel="stylesheet" href="resources/css/estiloIndex.css" />
+    </h:head>
+
+    <h:body style="background: url(resources/img/img10.jpg);
+            background-size: 1540px 780px;
+            background-repeat: no-repeat;
+            background-color: azure;">
+
+        <h:form id="menuBar">
+            <p:growl id="msgs" showDetail="true" rendered="true" showSummary="true"/>
+        </h:form>
+
+
+        <h:form id="formAdd">
+
+            <div class="p-col-align-center" style="margin-top: 50px; color: #000000">
+                <p:outputLabel style=" margin-left: 18rem;
+                               font-size: 4rem;
+                               font-family: 'Homer Simpson UI';"
+                               value="BIENVENIDO"/>
+            </div>
+            <div class="p-col-align-center" style="margin-top: 1rem; color: #333333 ">
+                <p:outputLabel style=" margin-left: 11rem;
+                               font-size: 3rem;
+                               font-family: 'Homer Simpson UI';"
+                               value="S.G.C Gestión de Citas Médicas "/>
+            </div>
+            <div class="p-grid p-jc-start p-ai-center" style="height: 30.6rem; color: #fff;
+                 ">
+
+                <div class="p-col-3" style="height: 17rem; width: 30rem; margin-left: 15px; color: white " >
+                    <div class="ui-fluid">
+                        <p:outputLabel value="Nombre Usuario" for="usuario" style="font-family: 'Homer Simpson UI'; font-size: 16pt;" />
+                        <p:inputText id="usuario" value="#{usuarioBean.usuarioLogin.nombreUsuario}" type="text" required="true" />
+                        <p:message for="usuario"/>
+                    </div>
+                    <div class="ui-fluid" >
+                        <p:outputLabel value="Contraseña" for="contrasena" style="font-family: 'Homer Simpson UI';font-size: 16pt;"/>
+                        <p:inputText id="contrasena" type="password" value="#{usuarioBean.usuarioLogin.contrasena}" required="true" />
+                        <p:message for="contrasena"/>
+                    </div>
+                    <div class="ui-fluid p-shadow-24">
+                        <!--Se puede usar el update desde el metodo al procesar la peticion o desde aqui con update : para hacer re
+               ferencia a otro formulario seguido del indentidicador-->
+                        <p:commandButton  icon="pi pi-check" iconPos="right" 
+                                          styleClass="ui-button-primary" 
+                                          style="font-family: 'Homer Simpson UI';font-size: 16pt;"
+                                          value="Entrar" update=":menuBar:msgs" action="#{usuarioBean.ingresar()}"
+                                          />
+                    </div>
+                </div>
+                <div  style=" margin-left: 1.5rem">
+                    <p:divider layout="vertical" style="height: 20rem;width: 0.3rem; background-color: #666666">
+                    </p:divider>
+                </div>
+                <div class="p-col-3 ui-fluid">
+                    <p:splitButton styleClass="ui-button-success" value="REGISTRAR" style="width: 85%;font-family: 'Homer Simpson UI';font-size: 16pt;">
+                        <p:menuitem value="Médico" 
+                                    icon="pi pi-user-plus"
+                                    oncomplete="PF('dlgAgregarEmpl').show();" 
+                                    />
+                        <p:menuitem value="Paciente" 
+                                    icon="pi pi-user-plus" 
+                                    oncomplete="PF('dlgAgregar').show();"
+                                    />
+
+                    </p:splitButton>
+                </div>
+            </div>
+
+            <div class="p-grid p-jc-center" style="color: #333333" >
+                <div class="p-col-12 p-grid p-jc-evenly">
+                    <p:commandButton icon="pi pi-github" class="ui-button-flat"/>
+                    <p:commandButton icon="pi pi-facebook" class="ui-button-flat"/>
+                    <p:commandButton icon="pi pi-youtube" class="ui-button-flat"/>
+                    <p:commandButton icon="pi pi-discord" class="ui-button-flat"/>
+                </div>
+                <div>
+                    <br/>
+                    <p:outputLabel style="
+                                   font-size: 1rem;
+                                   font-family: 'Homer Simpson UI';"
+                                   value="© Derechos Reservados 2021 - Erick Díaz - Leonel Tualombo - Francisco Jaramillo - Todos los derechos reservados"
+                                   />
+                    <br/>
+                    <br/>
+                </div>
+            </div>
+
+
+
+        </h:form>
+
+        <p:dialog widgetVar="dlgAgregar" modal="true" resizable="false" showEffect="puff" header="Registrar" closeOnEscape="true"
+                  >
+            <h:form>
+
+                <h:panelGrid columns="3" cellpadding="5" id="panelGrid">
+
+                    <p:outputLabel for="ci" value="CI: " />
+                    <p:inputMask mask="9999999999" id="ci" required="true" value="#{paAdminBean.pacienteSelect.PCi}" />
+                    <p:message for="ci" />
+
+                    <p:outputLabel for="nombre" value="Nombre: " />
+                    <p:inputText id="nombre" required="true" value="#{paAdminBean.pacienteSelect.PNombre}" />
+                    <p:message for="nombre" />
+
+                    <p:outputLabel for="apellido" value="Apelldio: " />
+                    <p:inputText id="apellido" required="true" value="#{paAdminBean.pacienteSelect.PApellido}" />
+                    <p:message for="apellido"  />
+
+                    <p:outputLabel for="fechaN" value="Fecha Nacimiento: " />
+                    <p:inputMask mask="9999-99-99" id="fechaN" required="true" value="#{paAdminBean.fechaNacimiento}"/>
+                    <p:message for="fechaN" />
+
+                    <p:outputLabel for="genero" value="Genero: " />
+                    <p:inputText id="genero" required="true" value="#{paAdminBean.pacienteSelect.PGenero}" />
+                    <p:message for="genero"  />
+
+                    <p:outputLabel for="usuario" value="Nombre Usuario: " />
+                    <p:inputText id="usuario" required="true" value="#{paAdminBean.usuarioSelect.nombreUsuario}" />
+                    <p:message for="usuario"  />
+
+                    <p:outputLabel for="contrsena" value="Contrasena: " />
+                    <p:password id="contrsena" required="true" value="#{paAdminBean.usuarioSelect.contrasena}" />
+                    <p:message for="contrsena"  />
+
+                    <p:outputLabel for="mail" value="Mail: " />
+                    <p:inputText id="mail" required="true" value="#{paAdminBean.usuarioSelect.mail}" />
+                    <p:message for="mail"  />
+
+                    <p:outputLabel for="telefono" value="Teléfono: " />
+                    <p:inputMask mask="(+999) 99 999 9999" id="telefono" required="true" value="#{paAdminBean.usuarioSelect.telefono}" />
+                    <p:message for="telefono"  />
+
+                    <p:commandButton update="panelGrid" icon="pi pi-plus"
+                                     styleClass="ui-button-succes" actionListener="#{paAdminBean.agregarPaciente}" 
+                                     value="Guardar"/>
+                </h:panelGrid>
+            </h:form>
+        </p:dialog>
+
+        <p:dialog header="REGISTRO NUEVO MEDICO" widgetVar="dlgAgregarEmpl"
+                  id="iDlgAgregarEmpl" showEffect="puff" modal="true">
+            <h:form>
+                <h:panelGrid columns="3" cellpadding="5" id="panelGrid">
+                    
+                    <p:outputLabel for="ci" value="Cédula Identidad: "/>
+                    <p:inputMask mask="9999999999" id="ci" value="#{eAdminBean.empleadoSelect.ci}" required="true"/>
+                    <p:message for="ci"/>
+
+                    <p:outputLabel for="nombre" value="Nombre: "/>
+                    <p:inputText id="nombre" value="#{eAdminBean.empleadoSelect.nombre}" required="true"/>
+                    <p:message for="nombre"/>
+
+                    <p:outputLabel for="apellido" value="Apellido: "/>
+                    <p:inputText id="apellido" value="#{eAdminBean.empleadoSelect.apellido}" required="true"/>
+                    <p:message for="apellido"/>
+
+                    <p:outputLabel for="cargo" value="Contraseña de Registro "/>
+                    <p:inputText id="cargo" type="password" value="#{eAdminBean.empleadoSelect.cargo}" required="true"/>
+                    <p:message for="cargo"/>
+
+                    <p:outputLabel for="nombreU" value="Nombre Usuario: "/>
+                    <p:inputText id="nombreU" value="#{eAdminBean.usuarioSelect.nombreUsuario}" required="true"/>
+                    <p:message for="nombreU"/>
+
+                    <p:outputLabel for="contrasena" value="Contrseña: "/>
+                    <p:password id="contrasena" value="#{eAdminBean.usuarioSelect.contrasena}" required="true"/>
+                    <p:message for="contrasena"/>
+
+                    <p:outputLabel for="mail" value="Email: "/>
+                    <p:inputText id="mail" value="#{eAdminBean.usuarioSelect.mail}" required="true"/>
+                    <p:message for="mail"/>
+
+                    <p:outputLabel for="telefono" value="Telefono "/>
+                    <p:inputMask mask="(+999) 99 999 9999" id="telefono" value="#{eAdminBean.usuarioSelect.telefono}" required="true"/>
+                    <p:message for="telefono"/>
+
+                    <p:commandButton update="formAdd panelGrid" action="#{eAdminBean.agregarMedico()}"
+                                     styleClass="ui-button-outlined ui-button-success"
+                                     icon="pi pi-check" value="Guardar"/>
+                </h:panelGrid>
+            </h:form>
+        </p:dialog>
+
+    </h:body>
+</html>

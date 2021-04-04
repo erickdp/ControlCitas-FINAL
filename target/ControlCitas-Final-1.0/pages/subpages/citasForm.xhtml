@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>Gestion de Citas</title>
+        <h:outputStylesheet name="primeflex.min.css" library="css" />
+        <f:event type="preRenderView" listener="#{plantillaController.verificarSesion2()}" />
+        <link rel="shortcut icon" href="../../resources/ico/logo_16.png" />
+        <link rel="stylesheet" href="../../resources/css/estilos2.css" />
+        <link rel="stylesheet" href="../../resources/css/estilo.css" />
+    </h:head>
+    <h:body>
+        <h:form id="menuBar">
+            <p:outputPanel id="out">
+                <p:menubar>
+                    <p:menuitem icon="pi pi-fw pi-home" value="Inicio" action="/pages/empleadoPerfil?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-users" value="Pacientes" action="/pages/subpages/pacienteForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-calendar" value="Citas" disabled="true"/>
+                    <p:menuitem icon="pi pi-fw pi-user-edit" value="Empleados" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/empleadoForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-wallet" value="Consultorios" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/consultorioForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-clock" value="Horario Atencion" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/horariosForm?faces-redirect=true"/>
+                    <f:facet name="options">
+                        <p:commandButton icon="pi pi-fw pi-sign-out" styleClass="ui-button-danger ui-button-raised ui-button-flat" 
+                                         value="Cerrar Sesion" actionListener="#{usuarioBean.cerrarSesion}" action="/index?faces-redirect=true"/>
+                        <p:avatar label="#{empleadoBean.usuarioSesion.empleado.nombre.charAt(0)}" 
+                                  size="large" style="margin-left: 1.7rem; background-color:#009999; color: #ffffff"/>
+                    </f:facet>
+                </p:menubar>
+            </p:outputPanel>
+            <p:growl id="msgs" showDetail="true" rendered="true" showSummary="true"/>
+        </h:form>
+
+        <div class="p-grid p-jc-evenly p-mx-2 p-my-4" >
+            <p:card>
+                <h:form class="p-mb-4 p-jc-between p-grid" >
+                    <div>
+                    </div>
+                    <div class="p-mr-2">
+                        <p:commandButton value="Reporte Citas"
+                                         styleClass="ui-button-raised ui-button-primary"
+                                         icon="pi pi-download">
+                            <p:dataExporter type="pdf" target=":formCita:dtCitas" fileName="Citas SGC" 
+                                            preProcessor="#{exportDocument.preProcessPDF}" options="#{exportDocument.pdfOptions}"/>
+                        </p:commandButton>
+                    </div>
+                </h:form>
+                <h:form id="formCita">
+                    <!--Para esta tabla se debe tomar los valores de citas para obtener el consultorio y ordenarlas para que se filtren por consultorio y no queden separados-->
+                    <p:dataTable var="cita" value="#{conAdminBean.citasList}" sortBy="#{cita.idConsultorio.especialidad}" 
+                                 rowStyleClass="#{gestionBean.validarActivo(cita.completado, cita.activo)}" id="dtCitas"
+                                 scrollable="true" scrollHeight="450">
+                        <p:headerRow field="idConsultorio.especialidad" expandable="true">
+                            <p:column headerText="Citas" groupRow="true">
+                                <h:outputText value="#{cita.idConsultorio.especialidad}" />
+                            </p:column>
+                        </p:headerRow>
+
+                        <p:column headerText="Codigo Cita">
+                            <h:outputText value="#{cita.codigoCita}" />
+                        </p:column>
+
+                        <p:column headerText="Fecha Cita">
+                            <h:outputText value="#{cita.fechaCita}" >
+                                <f:convertDateTime pattern="yyyy-MM-dd HH:mm" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="CI Paciente">
+                            <h:outputText value="#{cita.idUsuario.PCi}" />
+                        </p:column>
+
+                        <p:column headerText="Paciente">
+                            <h:outputText value="#{cita.idUsuario.PNombre} " />
+                            <h:outputText value=" #{cita.idUsuario.PApellido}" />
+                        </p:column>
+
+                        <p:column headerText="Medico Atencion">
+                            <h:outputText value="Dr. #{cita.idMedico.empleado.nombre}" />
+                            <h:outputText value=" #{cita.idMedico.empleado.apellido}" />
+                        </p:column>
+
+                        <p:column headerText="Estado Cita">
+                            <h:outputText value="#{cita.activo}" />
+                        </p:column>
+
+                        <p:column headerText="Completado">
+                            <h:outputText value="#{cita.completado}" />
+                        </p:column>
+
+                        <p:column exportable="false" headerText="Opcion"
+                                  rendered="#{gestionBean.mostrarEliminar(usuarioBean.usuarioSesion.empleado, cita.activo)}" >
+                            <p:commandButton class="ui-button-danger rounded-button ui-button-raised" icon="pi pi-trash"
+                                             oncomplete="PF('dlgEliminar').show()" >
+                                <f:setPropertyActionListener value="#{cita}" target="#{conAdminBean.citaSelect}" />
+                            </p:commandButton>
+                        </p:column>
+
+                        <p:column exportable="false" />
+
+                        <p:summaryRow>
+                            <p:column colspan="5" style="text-align:right">
+                                <h:outputText value="Total citas pendientes en #{cita.idConsultorio.especialidad}"/>
+                            </p:column>
+                            <p:column>
+                                <h:outputText value="#{conAdminBean.getTotalCitas(cita.idConsultorio)}" />
+                            </p:column>
+                        </p:summaryRow>
+
+                    </p:dataTable>
+                </h:form>
+            </p:card>
+        </div>
+
+        <p:confirmDialog widgetVar="dlgEliminar" showEffect="puff" width="300"
+                         message="Seguro desea eliminar la cita?" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{conAdminBean.cancelarCita()}"
+                             process="@this" oncomplete="PF('dlgEliminar').hide()" update=":formCita"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgEliminar').hide()"/>
+        </p:confirmDialog>
+
+    </h:body>
+</html>

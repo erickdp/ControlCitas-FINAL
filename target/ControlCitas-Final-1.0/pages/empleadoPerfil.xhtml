@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>Perfil Empleado</title>
+        <h:outputStylesheet name="primeflex.min.css" library="css" />
+        <f:event type="preRenderView" listener="#{plantillaController.verificarSesion()}" />
+        <link rel="shortcut icon" href="../resources/ico/logo_16.png" />
+        <link rel="stylesheet" href="../resources/css/estilo.css" />
+    </h:head>
+
+    <h:body>
+        <!--Tener en cuenta que cuando se usa metodos en algunos casos usar los () y para get y set no-->
+        <h:form id="menuBar">
+            <p:outputPanel id="out">
+                <p:menubar>
+                    <p:menuitem icon="pi pi-fw pi-home" value="Inicio" disabled="true"/>
+                    <p:menuitem icon="pi pi-fw pi-users" value="Pacientes" rendered="#{usuarioBean.validarOpcionGestion()}"  action="/pages/subpages/pacienteForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-calendar" value="Citas" rendered="#{usuarioBean.validarOpcionGestion()}" action="/pages/subpages/citasForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-user-edit" value="Empleados" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/empleadoForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-wallet" value="Consultorios" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/consultorioForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-clock" value="Horario Atención" rendered="#{usuarioBean.validarOpcion()}" action="/pages/subpages/horariosForm?faces-redirect=true"/>
+                    <p:menuitem icon="pi pi-fw pi-calendar" value="Atención Citas" rendered="#{usuarioBean.validarOpcionMedico()}" action="#{usuarioBean.accesoCitas()}"/>
+                    <f:facet name="options" class="p-grid">
+                        <p:commandButton icon="pi pi-fw pi-sign-out" styleClass="ui-button-danger ui-button-raised ui-button-flat"  
+                                         value="Cerrar Sesion" actionListener="#{usuarioBean.cerrarSesion}" action="/index?faces-redirect=true"/>
+                        <p:avatar label="#{empleadoBean.usuarioSesion.empleado.nombre.charAt(0)}" 
+                                  size="large" style="margin-left: 1.7rem; background-color:#009999; color: #ffffff"/>
+                    </f:facet>
+                </p:menubar>
+            </p:outputPanel>
+            <p:growl id="msgs" showDetail="true" rendered="true" showSummary="true"/>
+            <p:growl id="msgsSticky" showDetail="true" rendered="true" showSummary="true" sticky="true"/>
+        </h:form>
+
+        <!--Los div y card no afectan a la actualizacion , siguen tratandoce por id-->
+        <div class="p-grid p-jc-center p-mt-3">
+            <p:card class="p-col-7">
+                <div class="p-grid p-jc-center">
+                    <p:graphicImage height="200px" library="img" name="logo.png"/>
+                </div>
+                <div style="margin-left: 10rem">
+
+                    <h:form id="formPerfil">
+                        <p:panelGrid id="panelGrid" layout="grid" columns="2">
+
+                            <p:column colspan="1">
+                                <p:outputLabel>Número de Cédula</p:outputLabel>
+                            </p:column>
+                            <p:column colspan="1">
+                                <b><p:outputLabel value="#{empleadoBean.usuarioSesion.empleado.ci}" /></b>
+                            </p:column>
+
+                            <p:column colspan="1">
+                                <p:outputLabel>Cargo</p:outputLabel>
+                            </p:column>
+                            <p:column colspan="1">
+                                <b><p:outputLabel value="#{empleadoBean.usuarioSesion.empleado.cargo}" /></b>
+                            </p:column>
+
+                            <p:column colspan="1">
+                                <p:outputLabel>Nombre y Apellido</p:outputLabel>
+                            </p:column>
+
+                            <p:column colspan="1">
+                                <b><p:outputLabel value="#{empleadoBean.usuarioSesion.empleado.nombre}" />
+                                    <p:outputLabel value=" " />
+                                    <p:outputLabel value="#{empleadoBean.usuarioSesion.empleado.apellido}" /></b>
+                            </p:column>
+
+                            <p:column colspan="1">
+                                <p:outputLabel>Nombre de Usuario</p:outputLabel>
+                            </p:column>
+                            <p:column colspan="1">
+                                <b><p:outputLabel value="#{empleadoBean.usuarioSesion.nombreUsuario}" /></b>
+                            </p:column>
+
+                            <p:column colspan="1">
+                                <p:outputLabel>Mail</p:outputLabel>
+                            </p:column>
+                            <p:column colspan="1">
+                                <b><p:outputLabel value="#{empleadoBean.usuarioSesion.mail}" /></b>
+                            </p:column>
+
+                            <p:column colspan="1">
+                                <p:outputLabel>Número de contacto</p:outputLabel>
+                            </p:column>
+                            <p:column colspan="1">
+                                <b><p:outputLabel value="#{empleadoBean.usuarioSesion.telefono}" /></b>
+                            </p:column>
+                            <p:column colspan="1">
+                                <!--Siempre debo actualizar el Dialog para que se cargen los datos, pero el id-->
+                                <!--Para usar el f:setPropery debe a quien llame tener viewScope-->
+                                <p:commandButton class="ui-fluid" value="Actualizar Perfil"
+                                                 icon="pi pi-user-edit"
+                                                 oncomplete="PF('dlgEmpleado').show();" 
+                                                 update="iDlgEmpleado"
+                                                 styleClass="ui-button-raised ui-button-flat ui-button-help">
+                                    <f:setPropertyActionListener value="#{empleadoBean.usuarioSesion}" target="#{empleadoBean.usuarioSelect}" />
+                                </p:commandButton>
+                            </p:column>
+
+                        </p:panelGrid>
+                    </h:form>
+                </div>
+            </p:card>
+        </div>
+        <!--Arreglar esto porque los campos no se actualizan-->
+        <!--Dialogo para actualizar los campos del empleado-->
+        <p:dialog header="Ficha de Empleado Administrador" widgetVar="dlgEmpleado"
+                  id="iDlgEmpleado" showEffect="puff" modal="true">
+            <h:form>
+                <h:panelGrid columns="3" cellpadding="5" id="panelGrid">
+
+                    <p:outputLabel for="ci" value="Cédula Identidad: "/>
+                    <p:inputMask mask="999999999" id="ci" value="#{empleadoBean.usuarioSelect.empleado.ci}" required="true"/>
+                    <p:message for="ci"/>
+
+                    <p:outputLabel for="nombre" value="Nombre: "/>
+                    <p:inputText id="nombre" value="#{empleadoBean.usuarioSelect.empleado.nombre}" required="true"/>
+                    <p:message for="nombre"/>
+
+                    <p:outputLabel for="apellido" value="Apellido: "/>
+                    <p:inputText id="apellido" value="#{empleadoBean.usuarioSelect.empleado.apellido}" required="true"/>
+                    <p:message for="apellido"/>
+
+                    <p:selectOneRadio id="cargo" value="#{empleadoBean.usuarioSelect.empleado.cargo}" 
+                                      required="true" disabled="#{empleadoBean.cargarOpcion()}">
+                        <f:selectItem itemLabel="Administrador" itemValue="ADMINISTRADOR"/>
+                        <f:selectItem itemLabel="Secretario" itemValue="SECRETARIO"/>
+                    </p:selectOneRadio>
+                    <!--Nueva columa-->
+                    <p:message for="cargo"/>
+
+                    <p:outputLabel for="nombreU" value="Nombre Usuario: "/>
+                    <p:inputText id="nombreU" value="#{empleadoBean.usuarioSelect.nombreUsuario}" required="true"/>
+                    <p:message for="nombreU"/>
+
+                    <p:outputLabel for="contrasena" value="Contrseña: "/>
+                    <p:inputText type="password" id="contrasena" value="#{empleadoBean.usuarioSelect.contrasena}" required="true"/>
+                    <p:message for="contrasena"/>
+
+                    <p:outputLabel for="mail" value="Email: "/>
+                    <p:inputText id="mail" value="#{empleadoBean.usuarioSelect.mail}" required="true"/>
+                    <p:message for="mail"/>
+
+                    <p:outputLabel for="telefono" value="Telefono "/>
+                    <p:inputMask mask="(+999) 99 999 9999" id="telefono" value="#{empleadoBean.usuarioSelect.telefono}" required="true"/>
+                    <p:message for="telefono"/>
+
+                    <p:commandButton update="panelGrid" actionListener="#{empleadoBean.actualizarUsuario}"
+                                     styleClass="ui-button-outlined ui-button-success"
+                                     icon="pi pi-check" value="Actualizar"/>
+                </h:panelGrid>
+            </h:form>
+        </p:dialog>
+
+    </h:body>
+</html>

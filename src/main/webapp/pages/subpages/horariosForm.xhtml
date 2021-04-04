@@ -1,0 +1,166 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>Gestion de Citas</title>
+        <h:outputStylesheet name="primeflex.min.css" library="css" />
+        <f:event type="preRenderView" listener="#{plantillaController.verificarSesion2()}" />
+        <link rel="shortcut icon" href="../../resources/ico/logo_16.png" />
+        <link rel="stylesheet" href="../../resources/css/estilos2.css" />
+        <link rel="stylesheet" href="../../resources/css/estilo.css" />
+    </h:head>
+    <h:body>
+
+        <h:form id="menuBar">
+            <p:menubar>
+                <p:menuitem icon="pi pi-fw pi-home" value="Inicio" action="/pages/empleadoPerfil?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-users" value="Pacientes" action="/pages/subpages/pacienteForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-calendar" value="Citas" action="/pages/subpages/citasForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-user-edit" value="Empleados" action="/pages/subpages/empleadoForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-wallet" value="Consultorios" action="/pages/subpages/consultorioForm?faces-redirect=true"/>
+                <p:menuitem icon="pi pi-fw pi-clock" value="Horario Atencion" disabled="true"/>
+                <f:facet name="options">
+                    <p:commandButton icon="pi pi-fw pi-sign-out" styleClass="ui-button-danger ui-button-raised ui-button-flat" 
+                                     value="Cerrar Sesion" actionListener="#{usuarioBean.cerrarSesion}" action="/index?faces-redirect=true"/>
+                    <p:avatar label="#{empleadoBean.usuarioSesion.empleado.nombre.charAt(0)}" 
+                              size="large" style="margin-left: 1.7rem; background-color:#009999; color: #ffffff"/>
+                </f:facet>
+            </p:menubar>
+            <p:growl id="msgs" showDetail="true" rendered="true" showSummary="true"/>
+        </h:form>
+
+        <div class="p-grid p-jc-evenly p-mx-2 p-mt-4">
+            <p:card>
+
+                <h:form class="p-mb-4 p-grid p-jc-between">
+                    <div class="p-ml-2" >
+                        <p:commandButton value="Agregar Horario" icon="pi pi-plus" styleClass="ui-button-raised ui-button-help" 
+                                         oncomplete="PF('dlgGestionHorario').show();" style="margin-right: 2.8rem"/>
+                    </div>
+                    <div class="p-mr-2">
+                        <p:commandButton value="Reporte Horarios"
+                                         styleClass="ui-button-raised ui-button-primary"
+                                         icon="pi pi-download">
+                            <p:dataExporter type="pdf" target=":formHorario:dtHorario" fileName="Horarios SGC" 
+                                            preProcessor="#{exportDocument.preProcessPDF}" options="#{exportDocument.pdfOptions}"/>
+                        </p:commandButton>
+                    </div>
+                </h:form>
+
+                <h:form id="formHorario">
+                    <p:dataTable id="dtHorario" value="#{horarioBean.horarioList}" var="horario"
+                                 rows="4" paginator="true" paginatorPosition="top" editable="true" rowKey="#{horario.idHorarioAtencion}" 
+                                 selectionMode="single" allowUnsorting="true" >
+
+                        <f:facet name="header">
+                            Consultorios Disponibles
+                        </f:facet>
+
+                        <p:column headerText="Codigo" filterBy="#{horario.codigoHorario}" >
+                            <h:outputText value="#{horario.codigoHorario}"/>
+                        </p:column>
+                        <p:column headerText="Dias Laborales" sortBy="#{horario.diasLaborales}" width="350">
+                            <h:outputText value="#{horario.diasLaborales}"/>
+                        </p:column>
+                        <p:column headerText="Hora de Apertura" sortBy="#{horario.horaInicio}">
+                            <h:outputText value="#{horario.horaInicio}" >
+                                <f:convertDateTime pattern="HH:mm" />
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Hora de Cierre" sortBy="#{horario.horaFinal}">
+                            <h:outputText value="#{horario.horaFinal}" >
+                                <f:convertDateTime pattern="HH:mm" />
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Estado" filterBy="#{horario.estado}">
+                            <h:outputText value="#{horario.estado}"/>
+                        </p:column>
+
+                        <p:column exportable="false" headerText="Actualizar" width="90">
+                            <p:commandButton class="ui-button-warning rounded-button ui-button-raised" icon="pi pi-pencil"
+                                             oncomplete="PF('dlgGestionHorario').show()" update=":formHorarioGestion:iDlgGestionHorario">
+                                <f:setPropertyActionListener value="#{horario}" target="#{horarioBean.horarioSelect}" />
+                            </p:commandButton>
+                        </p:column>
+
+                        <p:column exportable="false" headerText="(IN)Habilitar" width="90">
+                            <p:commandButton class="ui-button-success rounded-button ui-button-raised" icon="pi pi-plus"
+                                             oncomplete="PF('dlgAgregar').show()" rendered="#{gestionBean.mostrarOpcion2(horario.estado)}">
+                                <f:setPropertyActionListener value="#{horario}" target="#{horarioBean.horarioSelect}" />
+                            </p:commandButton>
+                            <p:commandButton class="ui-button-danger rounded-button ui-button-raised" icon="pi pi-trash"
+                                             oncomplete="PF('dlgEliminar').show()" rendered="#{gestionBean.mostrarOpcion(horario.estado)}">
+                                <f:setPropertyActionListener value="#{horario}" target="#{horarioBean.horarioSelect}" />
+                            </p:commandButton>
+                        </p:column>
+
+                    </p:dataTable>
+                </h:form>
+            </p:card>
+        </div>
+
+        <h:form id="formHorarioGestion">
+            <p:dialog id="iDlgGestionHorario" widgetVar="dlgGestionHorario" 
+                      showEffect="puff" modal="true" position="center" header="Gestion Horario" closable="false">
+                <!--Basicamente outputpanel esconde o muestra los valores del objeto horario si esque los tiene o no-->
+                <p:outputPanel id="outGH" rendered="#{not empty horarioBean.horarioSelect}">
+                    <div class="p-field">
+                        <h:outputText value="#{horarioBean.horarioSelect.diasLaborales}" />
+                    </div>
+                    <div class="p-field">
+                        <p:selectCheckboxMenu id="menu" value="#{horarioBean.diasSeleccionados}" label="Dias" style="width: 15rem"
+                                              multiple="true" panelStyle="width: 15rem" scrollHeight="250" required="#{horarioBean.validarCampo()}">
+                            <f:selectItems value="#{horarioBean.diasLaborales}"/>
+                        </p:selectCheckboxMenu>
+                        <p:message for="menu" />
+                    </div>
+                    <div class="p-field">
+                        <h4>Horario Entrada</h4>
+                        <p:datePicker timeOnly="true" id="horarioE" required="true" pattern="HH:mm"
+                                      stepMinute="0"
+                                      timeInput="false"
+                                      readonlyInput="true"
+                                      value="#{horarioBean.horarioSelect.horaInicio}"/>
+                        <p:message for="horarioE" />
+                    </div>
+                    <div class="p-field">
+                        <h4>Horario Salida</h4>
+                        <p:datePicker timeOnly="true" id="horarioS" required="true" pattern="HH:mm"
+                                      stepMinute="0"
+                                      timeInput="false"
+                                      readonlyInput="true"
+                                      value="#{horarioBean.horarioSelect.horaFinal}"/>
+                        <p:message for="horarioS" />
+                    </div>
+                </p:outputPanel>
+                <f:facet name="footer" >
+                    <p:commandButton actionListener="#{horarioBean.agregarHorario()}" 
+                                     update="outGH" value="Guardar"/>
+                    <p:commandButton actionListener="#{horarioBean.cancelar()}" class="p-ml-3"
+                                     value="Cancelar" onclick="PF('dlgGestionHorario').hide();" 
+                                     update="formHorarioGestion"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <p:confirmDialog widgetVar="dlgEliminar" showEffect="fade" width="300"
+                         message="Seguro desea eliminar el Horario? Todas sus consultorios se inhabilitaran" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{horarioBean.eliminarHorario()}"
+                             process="@this" oncomplete="PF('dlgEliminar').hide()" update=":formHorario"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgEliminar').hide()"/>
+        </p:confirmDialog>
+
+        <p:confirmDialog widgetVar="dlgAgregar" showEffect="fade" width="300"
+                         message="Habilitar horario?" header="Confirmación" severity="warn">
+            <p:commandButton value="Sí" icon="pi pi-check" actionListener="#{horarioBean.habilitarHorario()}"
+                             process="@this" oncomplete="PF('dlgAgregar').hide()" update=":formHorario"/>
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                             onclick="PF('dlgAgregar').hide()"/>
+        </p:confirmDialog>
+
+
+    </h:body>
+</html>
